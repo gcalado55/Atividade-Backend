@@ -4,6 +4,7 @@ import { ProductService } from '../product/product.service';
 import { AddProductDto } from './dto/add-product.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Request } from '@nestjs/common';
 
 @Controller('cart')
 export class CartController {
@@ -12,10 +13,10 @@ export class CartController {
     private readonly productService: ProductService,
   ) {}
 
+ @UseGuards(JwtAuthGuard)
   @Post()
-  async createCart() {
-    // Cria um novo carrinho vazio
-    return this.cartService.createCart();
+  async createCart(@Request() req) {
+    return this.cartService.createCart(req.user);
   }
 
   @Post(':cartId/add/:productId')

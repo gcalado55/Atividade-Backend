@@ -30,10 +30,10 @@ export class CartService {
     return cart;
   }
 
-  async createCart(): Promise<Cart> {
-    const cart = this.cartRepository.create({ items: [] });
-    return this.cartRepository.save(cart);
-  }
+  async createCart(user: User): Promise<Cart> {
+  const cart = this.cartRepository.create({ items: [], user });
+  return this.cartRepository.save(cart);
+}
 
    async addProductToCart(cartId: number, product: Product, quantity: number): Promise<Cart> {
     // Validação extra para garantir que o produto existe (consulta no DB)
