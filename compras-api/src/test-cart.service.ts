@@ -14,17 +14,23 @@ async function test() {
 
   await dataSource.initialize();
 
+  // Mock simples do ProductService com método findOne (não será usado aqui, mas é necessário)
+  const mockProductService = {
+    findOne: async (id: number) => null,  // comportamento padrão
+  };
+
+  // ✅ Corrigido: incluindo o mock como terceiro argumento
   const cartService = new CartService(
     dataSource.getRepository(Cart),
     dataSource.getRepository(CartItem),
+    mockProductService as any, // usamos 'any' para simplificar o tipo
   );
 
   // Criar carrinho
   const cart = await cartService.createCart();
   console.log('Cart created:', cart);
 
-  // Para adicionar produto, você precisa de um produto existente no DB
-  // Aqui, crie ou busque um produto de exemplo:
+  // Buscar ou criar produto de exemplo
   const productRepository = dataSource.getRepository(Product);
   let product = await productRepository.findOneBy({ id: 1 });
   if (!product) {
