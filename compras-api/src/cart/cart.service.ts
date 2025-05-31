@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
 import { CartItem } from '../cart-item/entities/cart-item.entity';
 import { Product } from '../product/entities/product.entity';
+import { ProductService } from '../product/product.service'; 
 
 @Injectable()
 export class CartService {
@@ -13,13 +14,15 @@ export class CartService {
 
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
+
+    private readonly productService: ProductService,  // INJETAR o ProductService
   ) {}
 
-  // Carrega o carrinho com seus itens e os produtos relacionados
-  async getCart(cartId: number): Promise<Cart> {
+  // Método para buscar carrinho com itens e produtos
+   async getCart(cartId: number): Promise<Cart> {
     const cart = await this.cartRepository.findOne({
       where: { id: cartId },
-      relations: ['items', 'items.product'],  // <<<<<< RELAÇÕES CARREGADAS AQUI
+      relations: ['items', 'items.product'],
     });
     if (!cart) {
       throw new NotFoundException('Cart not found');
@@ -32,10 +35,16 @@ export class CartService {
     return this.cartRepository.save(cart);
   }
 
-  async addProductToCart(cartId: number, product: Product, quantity: number): Promise<Cart> {
+   async addProductToCart(cartId: number, product: Product, quantity: number): Promise<Cart> {
+    // Validação extra para garantir que o produto existe (consulta no DB)
+    const existingProduct = await this.productService.findOne(product.id);
+    if (!existingProduct) {
+      throw new NotFoundException(`Produto com ID ${product.id} não encontrado no service`);
+    }
+
     const cart = await this.getCart(cartId);
 
-    // Aqui garantimos que o produto existe na lista de items
+    // Busca item no carrinho para incrementar quantidade ou criar novo
     let item = cart.items.find(i => i.product.id === product.id);
 
     if (item) {
