@@ -2,6 +2,8 @@ import { Controller, Post, Param, Body, Delete, Get, NotFoundException } from '@
 import { CartService } from './cart.service';
 import { ProductService } from '../product/product.service';
 import { AddProductDto } from './dto/add-product.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('cart')
 export class CartController {
@@ -49,18 +51,21 @@ export class CartController {
     return this.cartService.finalizePurchase(cartId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAllCarts() {
     // Lista todos os carrinhos com seus itens e produtos
     return this.cartService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':cartId')
   async findCartById(@Param('cartId') cartId: number) {
     // Busca um carrinho específico pelo id
     return this.cartService.getCart(cartId);
   }
   
+  @UseGuards(JwtAuthGuard)
   @Delete(':cartId')
   async deleteCart(@Param('cartId') cartId: number) {
     // Deleta um carrinho específico pelo id
