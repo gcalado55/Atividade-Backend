@@ -1,7 +1,6 @@
-import { Controller, Post, Param, Body, Delete, Get } from '@nestjs/common';
+import { Controller, Post, Param, Body, Delete, Get, NotFoundException } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { ProductService } from '../product/product.service';
-import { NotFoundException } from '@nestjs/common';
 import { AddProductDto } from './dto/add-product.dto';
 
 @Controller('cart')
@@ -13,6 +12,7 @@ export class CartController {
 
   @Post()
   async createCart() {
+    // Cria um novo carrinho vazio
     return this.cartService.createCart();
   }
 
@@ -22,11 +22,15 @@ export class CartController {
     @Param('productId') productId: number,
     @Body() body: AddProductDto,
   ) {
+    // Busca o produto pelo id
     const product = await this.productService.findOne(productId);
+    
+    // Se não existir, lança NotFoundException com mensagem clara
     if (!product) {
-      throw new NotFoundException('Produto não encontrado');
+      throw new NotFoundException(`Produto com ID ${productId} não encontrado`);
     }
 
+    // Se produto existe, adiciona ao carrinho via service
     return this.cartService.addProductToCart(cartId, product, body.quantity);
   }
 
@@ -35,28 +39,31 @@ export class CartController {
     @Param('cartId') cartId: number,
     @Param('productId') productId: number,
   ) {
+    // Remove produto do carrinho, lança erro se produto não estiver presente
     return this.cartService.removeProductFromCart(cartId, productId);
   }
 
   @Post(':cartId/finalize')
   async finalize(@Param('cartId') cartId: number) {
+    // Finaliza compra (limpa carrinho)
     return this.cartService.finalizePurchase(cartId);
   }
 
-  // Novo endpoint para listar todos os carrinhos com itens e produtos
   @Get()
   async findAllCarts() {
+    // Lista todos os carrinhos com seus itens e produtos
     return this.cartService.findAll();
   }
 
-  // Opcional: listar um carrinho específico com itens e produtos
   @Get(':cartId')
   async findCartById(@Param('cartId') cartId: number) {
+    // Busca um carrinho específico pelo id
     return this.cartService.getCart(cartId);
   }
   
-   @Delete(':cartId')
+  @Delete(':cartId')
   async deleteCart(@Param('cartId') cartId: number) {
+    // Deleta um carrinho específico pelo id
     await this.cartService.deleteCart(cartId);
     return { message: `Carrinho ${cartId} deletado com sucesso` };
   }
