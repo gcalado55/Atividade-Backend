@@ -6,6 +6,7 @@ import { Cart } from './cart/entities/cart.entity';
 import { CartItem } from './cart-item/entities/cart-item.entity';
 import { CartItemModule } from './cart-item/cart-item.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from './user/user.module';
     CartModule,
     CartItemModule,
     UserModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
