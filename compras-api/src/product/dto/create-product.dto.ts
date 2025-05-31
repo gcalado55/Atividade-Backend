@@ -1,14 +1,18 @@
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger'; // ✅ Swagger
 
 export class CreateProductDto {
+  @ApiProperty({ description: 'Nome do produto' })
   @IsString()
-  @IsNotEmpty({ message: 'O nome é obrigatório' })
+  @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ description: 'Descrição do produto' })
   @IsString()
   description: string;
 
+  @ApiProperty({ description: 'Preço do produto' })
   @IsNumber()
-  @Min(0.01, { message: 'O preço deve ser maior que zero' })
+  @Min(0.01)
   price: number;
 }
