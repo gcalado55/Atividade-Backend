@@ -5,9 +5,10 @@ import { ProductService } from '../product/product.service';
 
 describe('CartController', () => {
   let controller: CartController;
-  let cartService: CartService;
+  let cartService: jest.Mocked<CartService>;
+  let productService: jest.Mocked<ProductService>;
 
-  const mockCartService = {
+  const mockCartService: Partial<jest.Mocked<CartService>> = {
     createCart: jest.fn(),
     addProductToCart: jest.fn(),
     removeProductFromCart: jest.fn(),
@@ -17,7 +18,7 @@ describe('CartController', () => {
     deleteCart: jest.fn(),
   };
 
-  const mockProductService = {
+  const mockProductService: Partial<jest.Mocked<ProductService>> = {
     findOne: jest.fn(),
   };
 
@@ -25,21 +26,17 @@ describe('CartController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CartController],
       providers: [
-        {
-          provide: CartService,
-          useValue: mockCartService,
-        },
-        {
-          provide: ProductService,
-          useValue: mockProductService,
-        },
+        { provide: CartService, useValue: mockCartService },
+        { provide: ProductService, useValue: mockProductService },
       ],
     }).compile();
 
     controller = module.get<CartController>(CartController);
-    cartService = module.get<CartService>(CartService);
+    cartService = module.get(CartService);
+    productService = module.get(ProductService);
 
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should be defined', () => {
@@ -47,16 +44,21 @@ describe('CartController', () => {
   });
 
   describe('createCart', () => {
-    it('should call createCart from service', async () => {
-      const mockCart = { id: 1 };
-      mockCartService.createCart.mockResolvedValue(mockCart);
+  it('should call createCart from service', async () => {
+    const mockCart = {
+      id: 1,
+      items: [],
+      user: { id: 1, name: 'Test User', email: 'test@example.com', password: 'hashedPassword', carts: [] }
+    };
+    const mockReq = { user: { id: 1 } };
 
-      const result = await controller.createCart();
+    cartService.createCart.mockResolvedValue(mockCart);
 
-      expect(mockCartService.createCart).toHaveBeenCalled();
-      expect(result).toEqual(mockCart);
-    });
+    const result = await controller.createCart(mockReq);
+
+    expect(cartService.createCart).toHaveBeenCalledWith(mockReq.user);
+    expect(result).toEqual(mockCart);
   });
+});
 
-  // Você pode criar testes para addProduct, removeProduct, finalize, findAllCarts etc.
 });

@@ -5,6 +5,8 @@ import { Cart } from './entities/cart.entity';
 import { CartItem } from '../cart-item/entities/cart-item.entity';
 import { Product } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service'; 
+import { User } from '../user/entities/user.entity';
+import { DeepPartial } from 'typeorm';
 
 @Injectable()
 export class CartService {
@@ -15,11 +17,10 @@ export class CartService {
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
 
-    private readonly productService: ProductService,  // INJETAR o ProductService
+    private readonly productService: ProductService,
   ) {}
 
-  // Método para buscar carrinho com itens e produtos
-   async getCart(cartId: number): Promise<Cart> {
+  async getCart(cartId: number): Promise<Cart> {
     const cart = await this.cartRepository.findOne({
       where: { id: cartId },
       relations: ['items', 'items.product'],
@@ -31,12 +32,15 @@ export class CartService {
   }
 
   async createCart(user: User): Promise<Cart> {
-  const cart = this.cartRepository.create({ items: [], user });
+  const cartData: DeepPartial<Cart> = {
+    items: [],
+    user: user,
+  };
+  const cart = this.cartRepository.create(cartData);
   return this.cartRepository.save(cart);
 }
 
-   async addProductToCart(cartId: number, product: Product, quantity: number): Promise<Cart> {
-    // Validação extra para garantir que o produto existe (consulta no DB)
+  async addProductToCart(cartId: number, product: Product, quantity: number): Promise<Cart> {
     const existingProduct = await this.productService.findOne(product.id);
     if (!existingProduct) {
       throw new NotFoundException(`Produto com ID ${product.id} não encontrado no service`);
@@ -44,7 +48,6 @@ export class CartService {
 
     const cart = await this.getCart(cartId);
 
-    // Busca item no carrinho para incrementar quantidade ou criar novo
     let item = cart.items.find(i => i.product.id === product.id);
 
     if (item) {
@@ -82,21 +85,16 @@ export class CartService {
   }
 
   async finalizePurchase(cartId: number): Promise<string> {
-    // Simula finalização da compra, aqui você pode adicionar lógica de pedido/pagamento
     await this.clearCart(cartId);
     return 'Purchase finalized successfully';
   }
 
-  // Opcional: listar todos os carrinhos com seus itens e produtos
   async findAll(): Promise<Cart[]> {
     return this.cartRepository.find({ relations: ['items', 'items.product'] });
   }
 
   async deleteCart(cartId: number): Promise<void> {
-  const cart = await this.getCart(cartId);
-  await this.cartRepository.remove(cart);
+    const cart = await this.getCart(cartId);
+    await this.cartRepository.remove(cart);
+  }
 }
-
-}
-
-
