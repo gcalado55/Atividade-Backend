@@ -87,14 +87,6 @@ src/
 
 ---
 
-## 📌 TODO
-
-- [ ] Adicionar autenticação nos endpoints sensíveis (ex: proteger rotas de carrinho)
-- [ ] Melhorar cobertura de testes
-- [ ] Deploy do projeto (Railway, Render ou Docker)
-
----
-
 ## 🧑‍💻 Desenvolvedor
 
 **Gabriel Calado Cartaxo Rodrigues**
