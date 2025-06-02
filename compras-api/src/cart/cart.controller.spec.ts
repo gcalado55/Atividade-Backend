@@ -44,21 +44,29 @@ describe('CartController', () => {
   });
 
   describe('createCart', () => {
-  it('should call createCart from service', async () => {
-    const mockCart = {
-      id: 1,
-      items: [],
-      user: { id: 1, name: 'Test User', email: 'test@example.com', password: 'hashedPassword', carts: [] }
-    };
-    const mockReq = { user: { id: 1 } };
+    it('should call createCart from service', async () => {
+      const mockUser = {
+        id: 1,
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'hashedPassword',
+        carts: [],
+      };
 
-    cartService.createCart.mockResolvedValue(mockCart);
+      const mockCart = {
+        id: 1,
+        items: [],
+        user: mockUser,
+      };
 
-    const result = await controller.createCart(mockReq);
+      const mockReq = { user: mockUser };
 
-    expect(cartService.createCart).toHaveBeenCalledWith(mockReq.user);
-    expect(result).toEqual(mockCart);
+      cartService.createCart!.mockResolvedValue(mockCart);
+
+      const result = await controller.createCart(mockReq);
+
+      expect(cartService.createCart).toHaveBeenCalledWith(mockUser);
+      expect(result).toEqual(mockCart);
+    });
   });
-});
-
 });

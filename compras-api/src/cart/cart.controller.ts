@@ -1,11 +1,11 @@
-import { Controller, Post, Param, Body, Delete, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Param, Body, Delete, Get, NotFoundException, UseGuards, Request } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { ProductService } from '../product/product.service';
 import { AddProductDto } from './dto/add-product.dto';
-import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('cart')
 @Controller('cart')
 export class CartController {
   constructor(
@@ -13,63 +13,67 @@ export class CartController {
     private readonly productService: ProductService,
   ) {}
 
- @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async createCart(@Request() req) {
+  @ApiOperation({ summary: 'Criar um novo carrinho para o usuário autenticado' })
+  @ApiResponse({ status: 201, description: 'Carrinho criado com sucesso.' })
+  createCart(@Request() req) {
     return this.cartService.createCart(req.user);
   }
 
   @Post(':cartId/add/:productId')
+  @ApiOperation({ summary: 'Adicionar um produto ao carrinho' })
+  @ApiResponse({ status: 200, description: 'Produto adicionado ao carrinho com sucesso.' })
   async addProduct(
     @Param('cartId') cartId: number,
     @Param('productId') productId: number,
     @Body() body: AddProductDto,
   ) {
-    // Busca o produto pelo id
     const product = await this.productService.findOne(productId);
-    
-    // Se não existir, lança NotFoundException com mensagem clara
     if (!product) {
       throw new NotFoundException(`Produto com ID ${productId} não encontrado`);
     }
-
-    // Se produto existe, adiciona ao carrinho via service
     return this.cartService.addProductToCart(cartId, product, body.quantity);
   }
 
   @Delete(':cartId/remove/:productId')
-  async removeProduct(
+  @ApiOperation({ summary: 'Remover um produto do carrinho' })
+  @ApiResponse({ status: 200, description: 'Produto removido do carrinho com sucesso.' })
+  removeProduct(
     @Param('cartId') cartId: number,
     @Param('productId') productId: number,
   ) {
-    // Remove produto do carrinho, lança erro se produto não estiver presente
     return this.cartService.removeProductFromCart(cartId, productId);
   }
 
   @Post(':cartId/finalize')
-  async finalize(@Param('cartId') cartId: number) {
-    // Finaliza compra (limpa carrinho)
+  @ApiOperation({ summary: 'Finalizar a compra do carrinho' })
+  @ApiResponse({ status: 200, description: 'Compra finalizada e carrinho limpo.' })
+  finalize(@Param('cartId') cartId: number) {
     return this.cartService.finalizePurchase(cartId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAllCarts() {
-    // Lista todos os carrinhos com seus itens e produtos
+  @ApiOperation({ summary: 'Listar todos os carrinhos' })
+  @ApiResponse({ status: 200, description: 'Lista de carrinhos retornada com sucesso.' })
+  findAllCarts() {
     return this.cartService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':cartId')
-  async findCartById(@Param('cartId') cartId: number) {
-    // Busca um carrinho específico pelo id
+  @ApiOperation({ summary: 'Buscar um carrinho pelo ID' })
+  @ApiResponse({ status: 200, description: 'Carrinho retornado com sucesso.' })
+  findCartById(@Param('cartId') cartId: number) {
     return this.cartService.getCart(cartId);
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @Delete(':cartId')
+  @ApiOperation({ summary: 'Deletar um carrinho pelo ID' })
+  @ApiResponse({ status: 200, description: 'Carrinho deletado com sucesso.' })
   async deleteCart(@Param('cartId') cartId: number) {
-    // Deleta um carrinho específico pelo id
     await this.cartService.deleteCart(cartId);
     return { message: `Carrinho ${cartId} deletado com sucesso` };
   }
